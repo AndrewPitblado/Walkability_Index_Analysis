@@ -87,16 +87,25 @@ print(f"   Removed {removed_duplicates} duplicate rows")
 
 # 2. Handle missing values
 print("\n2. Handling missing values...")
-# For numeric columns with missing values, we'll use different strategies
+
+# Define columns to handle differently
+geographic_identifiers = ['CSA', 'CBSA', 'CSA_Name', 'CBSA_Name']
 numeric_cols = df_clean.select_dtypes(include=[np.number]).columns
 
 for col in numeric_cols:
     missing_count = df_clean[col].isnull().sum()
     if missing_count > 0:
         missing_pct = (missing_count / len(df_clean)) * 100
-        # If more than 50% missing, consider flagging or dropping
+        
+        # Skip CSA and CBSA - these should remain missing
+        if col in geographic_identifiers:
+            print(f"   {col}: {missing_count} missing values ({missing_pct:.2f}%) - KEPT AS MISSING (not in metro area)")
+            continue
+        
+        # If more than 50% missing, flag as warning
         if missing_pct > 50:
             print(f"   WARNING: {col} has {missing_pct:.2f}% missing values")
+        
         # Fill with 0 for counts/employment data, median for other metrics
         if any(x in col.upper() for x in ['EMP', 'POP', 'WORKERS', 'COUNT', 'HH', 'TOT']):
             df_clean[col].fillna(0, inplace=True)
@@ -105,6 +114,13 @@ for col in numeric_cols:
             median_val = df_clean[col].median()
             df_clean[col].fillna(median_val, inplace=True)
             print(f"   Filled {col} missing values with median: {median_val:.4f} ({missing_count} values)")
+
+# Create binary indicators for CSA and CBSA membership
+print("\n2b. Creating metro area indicators...")
+df_clean['In_CSA'] = df_clean['CSA'].notna().astype(int)
+df_clean['In_CBSA'] = df_clean['CBSA'].notna().astype(int)
+print(f"   Created In_CSA: {df_clean['In_CSA'].sum():,} block groups in Combined Statistical Areas")
+print(f"   Created In_CBSA: {df_clean['In_CBSA'].sum():,} block groups in Core Based Statistical Areas")
 
 # 3. Fix data types - convert GEOID columns to strings to preserve leading zeros
 print("\n3. Fixing data types...")
@@ -116,6 +132,14 @@ for col in geoid_cols:
         if col == 'STATEFP':
             df_clean[col] = df_clean[col].str.zfill(2)
         print(f"   Converted {col} to string type")
+
+# Convert CSA and CBSA to strings (categorical codes)
+if 'CSA' in df_clean.columns:
+    df_clean['CSA'] = df_clean['CSA'].astype(str).replace('nan', np.nan)
+    print(f"   Converted CSA to string type (categorical)")
+if 'CBSA' in df_clean.columns:
+    df_clean['CBSA'] = df_clean['CBSA'].astype(str).replace('nan', np.nan)
+    print(f"   Converted CBSA to string type (categorical)")
 
 # 4. Remove rows with invalid core identifiers
 print("\n4. Checking for invalid core identifiers...")
@@ -141,7 +165,8 @@ for col in outlier_cols:
         lower_bound = Q1 - 3 * IQR  # Using 3*IQR for less aggressive filtering
         upper_bound = Q3 + 3 * IQR
         outliers = ((df_clean[col] < lower_bound) | (df_clean[col] > upper_bound)).sum()
-        print(f"   {col}: {outliers} potential outliers detected (not removed)")
+        outlier_pct = (outliers / len(df_clean)) * 100
+        print(f"   {col}: {outliers} potential outliers detected ({outlier_pct:.2f}%) - NOT REMOVED (may be real extreme values)")
 
 # ============================================================================
 # DATA NORMALIZATION
@@ -203,6 +228,14 @@ if 'NatWalkInd' in df_normalized.columns:
     )
     print("   Created Walkability_Category")
 
+# Create urban/rural classification based on metro area membership
+print("\n3b. Creating urban/rural classification...")
+df_normalized['Urban_Rural'] = 'Rural'
+df_normalized.loc[df_normalized['In_CBSA'] == 1, 'Urban_Rural'] = 'Urban'
+urban_count = (df_normalized['Urban_Rural'] == 'Urban').sum()
+rural_count = (df_normalized['Urban_Rural'] == 'Rural').sum()
+print(f"   Created Urban_Rural: {urban_count:,} Urban, {rural_count:,} Rural")
+
 # 4. Create derived metrics
 print("\n4. Creating derived metrics...")
 # Employment-Population ratio
@@ -244,6 +277,14 @@ print(f"Normalized dataset: {df_normalized.shape[0]:,} rows × {df_normalized.sh
 print(f"\nRows removed: {df.shape[0] - df_clean.shape[0]:,}")
 print(f"New columns added: {df_normalized.shape[1] - df_clean.shape[1]}")
 
+# Metro area summary
+print("\n" + "="*80)
+print("METRO AREA COVERAGE")
+print("="*80)
+print(f"Block groups in Combined Statistical Areas (CSA): {df_clean['In_CSA'].sum():,} ({(df_clean['In_CSA'].sum()/len(df_clean)*100):.1f}%)")
+print(f"Block groups in Core Based Statistical Areas (CBSA): {df_clean['In_CBSA'].sum():,} ({(df_clean['In_CBSA'].sum()/len(df_clean)*100):.1f}%)")
+print(f"Rural block groups (not in CBSA): {(df_clean['In_CBSA']==0).sum():,} ({((df_clean['In_CBSA']==0).sum()/len(df_clean)*100):.1f}%)")
+
 # Summary statistics for key columns
 print("\n" + "="*80)
 print("KEY STATISTICS (Cleaned Data)")
@@ -257,3 +298,8 @@ print("\n✓ Data cleaning and normalization complete!")
 print("\nFiles created:")
 print(f"  1. {output_file_clean}")
 print(f"  2. {output_file_normalized}")
+print("\nKey improvements:")
+print("  • CSA and CBSA codes preserved as missing where appropriate")
+print("  • Created In_CSA and In_CBSA binary indicators for analysis")
+print("  • Created Urban_Rural classification based on CBSA membership")
+print("  • All geographic identifiers properly formatted as strings")

@@ -1,3 +1,6 @@
+# **Group 9**
+Andrew Pitblado (251036228), Jingyao Qi (251152483), Beichen Ji (251144846), Hussein Harb (251542016)
+
 # Walkability_Index_Analysis
 Data Analysis Project looking into the Walkability Index presented by the EPA. Using various machine learning models to predict future walkability of various blocks/cities, and clustering data based on neighbourhoods
 

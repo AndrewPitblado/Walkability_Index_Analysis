@@ -1,5 +1,5 @@
 # Walkability_Index_Analysis
-Data Analysis Project looking into the Walkability Index presented by the EPA. Using various machine learning models to predict future walkability of various blocks/cities, and cluster data based on neighbourhoods
+Data Analysis Project looking into the Walkability Index presented by the EPA. Using various machine learning models to predict future walkability of various blocks/cities, and clustering data based on neighbourhoods
 
 ## Prerequisites
 -Python 3
@@ -13,13 +13,13 @@ Data Analysis Project looking into the Walkability Index presented by the EPA. U
 git clone https://github.com/AndrewPitblado/Walkability_Index_Analysis.git
 ```
 
-### 2. Create Virtual Enviornment
+### 2. Create Virtual Environment
 
 ```bash
 python3 -m venv .venv
 ```
 
-### 3. Activate Virtual Enviornment
+### 3. Activate Virtual Environment
 
 ***MacOS/Linux***
 ```bash
@@ -43,10 +43,10 @@ pip install -r requirements.txt
 ```bash
 python main.py
 #or
-jupyter notebook analysis.ipynb
+Jupyter Notebook analysis.ipynb
 ```
 
-## Deactivating Virtual Enviornment
+## Deactivating Virtual Environment
 
 When finished:
 ```bash

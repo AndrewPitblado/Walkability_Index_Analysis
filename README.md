@@ -46,7 +46,7 @@ pip install -r requirements.txt
 ```bash
 python main.py
 #or
-Jupyter Notebook analysis.ipynb
+[ECE9063_project.ipynb](https://github.com/AndrewPitblado/Walkability_Index_Analysis/blob/main/ECE9063_project.ipynb)
 ```
 
 ## Deactivating Virtual Environment

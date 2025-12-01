@@ -45,9 +45,9 @@ pip install -r requirements.txt
 ## Usage
 ```bash
 python main.py
-#or
-[ECE9063_project.ipynb](https://github.com/AndrewPitblado/Walkability_Index_Analysis/blob/main/ECE9063_project.ipynb)
 ```
+#or 
+[ECE9063_project.ipynb](https://github.com/AndrewPitblado/Walkability_Index_Analysis/blob/main/ECE9063_project.ipynb)
 
 ## Deactivating Virtual Environment
 
